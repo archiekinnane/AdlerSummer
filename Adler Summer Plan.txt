@@ -1,0 +1,75 @@
+﻿Introduction to Python
+* Hello world!
+* Variables
+* Methods
+* Operations with variables
+* Variable types (integer vs float … 5 / 2 vs 5. / 2.)
+* Reading / plotting data? (matplotlib)
+
+
+Python tutorial to work through:
+
+
+https://github.com/IPSScienceVisualization/Workshops/blob/master/Tokyo2017/Introduction.ipynb 
+
+
+Introduction to Astronomy
+* Astronomical units
+   * AU
+   * Parsec
+   * Degree, arc minute, arc second
+   * RA, Dec
+* Light
+   * Light as a wave (and particle) 
+      * Wavelength and frequency
+         * Color (might be outside visible spectrum), energy level (Photoelectric effect)
+   * Spectroscopy
+* What’s a star?
+   * Thermonuclear fusion
+   * Stellar evolution
+   * Black holes?
+* What’s a galaxy?
+   * Elliptical, spiral, irregular
+   * Milky Way
+      * 100 - 180,000 light years
+      * 100 - 400 billion stars
+      * Where we are, what our orbit’s like
+   * Center of galaxies...AGN
+   * IGM (1 atom / m^3)
+
+
+
+
+
+
+PYTHON ACTIVITIES
+
+
+Finding the Zone of Avoidance by plotting locations of observed galaxies
+
+
+Making a Hubble Diagram / Determining a Hubble Constant
+
+
+http://skyserver.sdss.org/dr12/en/proj/teachers/advanced/hubble/hubblehome.aspx
+
+
+For this:
+* Download a data set of all similar type galaxies (so that brightness ~= distance)
+* Explain what redshift is
+   * Siren, Doppler effect
+   * Calculating redshift from spectrum of galaxies
+   * Magnitude to flux to relative distance
+* Convert redshift to recessional velocity units
+* Plotting
+* Finding slope / determining what it means (expansion rate of universe)
+* From now on, can use redshift as a measure of distance
+
+
+Plotting 3d position using RA, Dec, and redshift
+
+
+https://github.com/IPSScienceVisualization/python-tutorials/blob/master/Visualizing%20GAMA.ipynb 
+
+
+Adler_1.ipynb
