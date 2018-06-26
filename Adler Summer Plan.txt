@@ -48,11 +48,7 @@ PYTHON ACTIVITIES
 Finding the Zone of Avoidance by plotting locations of observed galaxies
 
 
-Making a Hubble Diagram / Determining a Hubble Constant
-
-
-http://skyserver.sdss.org/dr12/en/proj/teachers/advanced/hubble/hubblehome.aspx
-
+**Making a Hubble Diagram / Determining a Hubble Constant**
 
 For this:
 * Download a data set of all similar type galaxies (so that brightness ~= distance)
@@ -64,6 +60,17 @@ For this:
 * Plotting
 * Finding slope / determining what it means (expansion rate of universe)
 * From now on, can use redshift as a measure of distance
+
+After: talk about the Hubble Constant
+
+-every other galaxy is moving away? no reason we are special, so...
+-universe is expanding
+-what are units of H0? getting characteristic time -> 1/H0
+-initial value -> Universe younger than Earth?
+-current value
+-cosmological constant
+-how universe could end ... heat death, big crunch, critical density
+
 
 
 Plotting 3d position using RA, Dec, and redshift
