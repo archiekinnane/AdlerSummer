@@ -15,17 +15,17 @@ https://github.com/IPSScienceVisualization/Workshops/blob/master/Tokyo2017/Intro
 
 Introduction to Astronomy
 * Astronomical units
+   * RA, Dec
    * AU
    * Parsec
    * Degree, arc minute, arc second
-   * RA, Dec
 * Light
    * Light as a wave (and particle) 
       * Wavelength and frequency
          * Color (might be outside visible spectrum), energy level (Photoelectric effect)
    * Spectroscopy
 * What’s a star?
-   * Thermonuclear fusion
+   * Thermonuclear fusion, TDE
    * Stellar evolution
    * Black holes?
 * What’s a galaxy?
