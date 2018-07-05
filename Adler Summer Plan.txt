@@ -56,6 +56,8 @@ For this:
    * Siren, Doppler effect
    * Calculating redshift from spectrum of galaxies
    * Magnitude to flux to relative distance
+*Distances
+   * Standard candles, parallax 
 * Convert redshift to recessional velocity units
 * Plotting
 * Finding slope / determining what it means (expansion rate of universe)
