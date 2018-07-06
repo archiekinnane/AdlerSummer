@@ -1,4 +1,6 @@
-﻿Introduction to Python
+Download python with anaconda: https://www.anaconda.com/download/#macos
+
+Introduction to Python
 * Hello world!
 * Variables
 * Methods
