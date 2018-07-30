@@ -39,7 +39,6 @@
    * Writing python program to split Galaxy Zoo speck into 3 files (spiral, elliptical, uncertain)
    * Modifying asset file
    * Drawing cartoons for spiral, elliptical, uncertain galaxies
-<hello>
 
 ### Week 4
 ##### 7/26:
