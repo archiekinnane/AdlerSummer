@@ -1,7 +1,7 @@
 # SVL Teen Program Summer 2018
 
 
-### Week 1
+### -> Week 1 <-
 ##### 7/6:
 * Introduction to astronomy: https://github.com/archiekinnane/AdlerSummer/blob/master/6.6.18.docx
 * Introduction to python: https://github.com/archiekinnane/AdlerSummer/blob/master/Introduction%20to%20Python.ipynb
