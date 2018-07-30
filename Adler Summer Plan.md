@@ -1,5 +1,5 @@
 # SVL Teen Program Summer 2018
-
+->THIS TEXT IS IN THE CENTER!<- 
 
 ->Week 1<-
 ##### 7/6:
