@@ -1,8 +1,8 @@
-﻿SVL Teen Program Summer 2018
+#SVL Teen Program Summer 2018
 
 
-Week 1
-7/6:
+###Week 1
+#####7/6:
 * Introduction to astronomy: https://github.com/archiekinnane/AdlerSummer/blob/master/6.6.18.docx
 * Introduction to python: https://github.com/archiekinnane/AdlerSummer/blob/master/Introduction%20to%20Python.ipynb
 * Begin Hubble Diagram exercise: 
@@ -10,8 +10,8 @@ Week 1
    * Data: https://github.com/archiekinnane/AdlerSummer/blob/master/galaxies_subset.fits 
 
 
-Week 2
-7/12: 
+###Week 2
+#####7/12: 
 * Finish Hubble Diagram exercise. Completed notebook: https://github.com/archiekinnane/AdlerSummer/blob/master/Adler_Hubble%20Diagram-completed.ipynb 
 * Querying galaxy zoo data from CasJobs
    * Making CasJobs account
