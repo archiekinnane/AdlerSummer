@@ -4,10 +4,12 @@
 ### Week 1
 ##### 7/6:
 * Introduction to astronomy: https://github.com/archiekinnane/AdlerSummer/blob/master/6.6.18.docx
-* Introduction to python: https://github.com/archiekinnane/AdlerSummer/blob/master/JupyterNotebooks/intro_to_python.ipynb
+* Introduction to python: 
+   * Exercise: https://github.com/archiekinnane/AdlerSummer/blob/master/JupyterNotebooks/intro_to_python.ipynb
+   * Data: https://github.com/archiekinnane/AdlerSummer/blob/master/data/stardata.csv
 * Begin Hubble Diagram exercise: 
    * Exercise: https://github.com/archiekinnane/AdlerSummer/blob/master/JupyterNotebooks/HubbleDiagram_exercise.ipynb
-   * Data: https://github.com/archiekinnane/AdlerSummer/blob/master/galaxies_subset.fits 
+   * Data: https://github.com/archiekinnane/AdlerSummer/blob/master/data/galaxies_subset%20(1).fits
 
 
 ### Week 2
@@ -17,7 +19,7 @@
    * Making CasJobs account
    * SQL examples and tutorial
    * Writing and executing query
-   * Data: https://github.com/archiekinnane/AdlerSummer/blob/master/galaxies_archiekinnane.fit 
+   * Data: https://github.com/archiekinnane/AdlerSummer/blob/master/data/galaxies_archiekinnane.fit 
 * Making VOtable to visualize galaxy positions in WWT: https://github.com/archiekinnane/AdlerSummer/blob/master/JupyterNotebooks/3dPositions.ipynb 
 ##### 7/13: 
 * Finish VOtable notebook
