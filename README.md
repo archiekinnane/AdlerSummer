@@ -1,6 +1,6 @@
 # AdlerSummer
 
-This is a repository for the Adler Planetarium's SVL Teen Program during Summer 2018. 
+This is a repository for the Adler Planetarium's SVL Teen Program, Summer 2018. 
 
 For an outline of the summer, see **Adler Summer Outline.md**.
 
