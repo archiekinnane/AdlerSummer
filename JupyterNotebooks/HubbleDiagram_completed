@@ -1,0 +1,767 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Making Our Own Hubble Diagram\n",
+    "\n",
+    "In this Notebook we will create our own Hubble Diagram -- the relationship between distance and redshift. Throughout the process, we'll get to:\n",
+    "\n",
+    "-practice using Python to manipulate data sets and make plots\n",
+    "\n",
+    "-convert between different astronomical units (flux, magnitude, distance, etc.)\n",
+    "\n",
+    "-learn what 'redshift'\n",
+    "\n",
+    "-see how the expansion of the universe was discovered, and\n",
+    "\n",
+    "-see how the expansion rate of the universe allows us to calculate distances to astronomical objects"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "First, we need to import all the modules we will use in this notebook. A 'module' is basically a prewritten piece of code that we can use to make a lot of processes much easier. \n",
+    "\n",
+    "A simple module might be something like divide_then_power, which divides the first input by the second input and then raises the result to the power of the third input (not sure why you would need something like this, but let's just go with it). \n",
+    "\n",
+    "Once you import this module, you might call it by typing \"divide_then_power(4,2,3),\" which would perform the operation (4/2)^3 and return 8, without you having to do all the messy work yourselves. \n",
+    "\n",
+    "Below I've written a little summary of what we will use each module for. (When we use the from ... import ..., that is because we are just importing a specific function from a larger module.)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from astropy.io import fits # a way to read in and manipualte a data format called fits\n",
+    "from astropy import constants as const # gives us constants like c (speed of light), G (gravitational constant), etc.\n",
+    "import matplotlib.pyplot as plt # the most common plotting module in python\n",
+    "from astropy import units as u # let's us attach units to our data\n",
+    "from scipy import stats # we'll just use it for a linear regression, to find the best fit slope of a scatterplot\n",
+    "from astropy.coordinates import SkyCoord # lets us go between different coordinate types easily\n",
+    "from astropy.coordinates import Distance, Angle # don't think we use this, not sure why I have it here, leaving it just in case\n",
+    "from astropy.table import Table, Column # lets us put our data into a nice Table that is easy to work with\n",
+    "from astropy.io import ascii # don't think we use this either\n",
+    "import numpy as np # basic math operations\n",
+    "%matplotlib inline"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now that we've got our modules, it's time to read in our data. Download the file \"galaxies_subset.fits\" from my GitHub page and then use the cell below to get to the directory -- probably Downloads -- that the file is in. Remember, you have to be in the right directory to import a file! pwd to see where you are and cd to change directory!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[Errno 2] No such file or directory: 'Downloads'\n",
+      "/home/APAM/akinnane\n"
+     ]
+    }
+   ],
+   "source": [
+    "cd Downloads"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A bit about the data you are working with: this file is a (not exactly) random sample of 100 of the hundreds of thousands of galaxies identified by SDSS -- the Sloan Digital Sky Survey. I got it by querying the SDSS dataset and saving every 1000th galaxy. To do this, we use a different programming language called SQL. If you're curious, here's the SQL code to get this dataset. \n",
+    "\n",
+    "SELECT TOP 100 objId,z,zErr,absMagR, lumDist, distMod, synthR\n",
+    "FROM Photoz\n",
+    "WHERE\n",
+    " nnIsInside=1 \n",
+    " and nnCount>95 \n",
+    " and zErr BETWEEN 0 and 0.03 \n",
+    " and (objId%1000) = 0 \n",
+    "\n",
+    "\n",
+    "Don't worry about this yet -- you'll learn how to query soon, though!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once we're in the right directory we want to open and inspect the data from the fits file. To open a fits file, we use the operator \"open.\" You then want to save this as whatever name you choose. So something like:\n",
+    "\n",
+    "name_you_choose = fits.open(\"name_of_file.fits\")\n",
+    "\n",
+    "Go ahead and open the file below."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#open and name the fits file\n",
+    "\n",
+    "hdu1 = fits.open(\"galaxies_subset.fits\")\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once you've done this, let's make sure everything we want is there. \"info\" gives you some basic information about the file. Type \"name_you_chose.info()\" to see this.\n",
+    "\n",
+    "Fits files usually have two sections -- the first, called PRIMARY, just has some basic information about the file, and nothing that we will really use. The second one is where the real data is. Make sure it has the right dimensions! Now let's check if all our columns are here, by typing \"name_you_chose[1].columns\". The [1] lets Python know you want the columns in the second fits array -- where the data is (Python starts numbering things with 0.) "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Filename: galaxies_subset.fits\n",
+      "No.    Name      Ver    Type      Cards   Dimensions   Format\n",
+      "  0  PRIMARY       1 PrimaryHDU       5   (0,)      \n",
+      "  1                1 BinTableHDU     22   100R x 7C   [1K, 1E, 1E, 1E, 1E, 1E, 1E]   \n",
+      "ColDefs(\n",
+      "    name = 'objId'; format = '1K'\n",
+      "    name = 'z'; format = '1E'\n",
+      "    name = 'zErr'; format = '1E'\n",
+      "    name = 'absMagR'; format = '1E'\n",
+      "    name = 'lumDist'; format = '1E'\n",
+      "    name = 'distMod'; format = '1E'\n",
+      "    name = 'synthR'; format = '1E'\n",
+      ")\n"
+     ]
+    }
+   ],
+   "source": [
+    "# look at the fits file's 'info'\n",
+    "\n",
+    "hdu1.info()\n",
+    "\n",
+    "# have python list the columns for us\n",
+    "\n",
+    "print(hdu1[1].columns)\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now let's put our data in a neat astropy Table. We'll use the Table module we imported above. You can call the table whatever you want, but it should be something that's both reflective of what's in it (galaxy data) but also short enough that it's not a pain to type out, which we will be doing a lot.\n",
+    "\n",
+    "This module works like this: table_name = Table(name_you_chose_before[1].data)\n",
+    "\n",
+    "(It might seems silly to have to retype a lot of these^ commands, but that's really the best way to learn how to code!)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# create your table here\n",
+    "\n",
+    "from astropy.table import Table\n",
+    "Hub_gal = Table(hdu1[1].data)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Then you can just type the name of your table to see it!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<i>Table length=100</i>\n",
+       "<table id=\"table140246439694008\" class=\"table-striped table-bordered table-condensed\">\n",
+       "<thead><tr><th>objId</th><th>z</th><th>zErr</th><th>absMagR</th><th>lumDist</th><th>distMod</th><th>synthR</th></tr></thead>\n",
+       "<thead><tr><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th></tr></thead>\n",
+       "<tr><td>1237645941296923000</td><td>0.250062</td><td>0.024561</td><td>-21.5395</td><td>882.371</td><td>39.7283</td><td>18.5495</td></tr>\n",
+       "<tr><td>1237645941298365000</td><td>0.24582</td><td>0.026461</td><td>-19.9996</td><td>865.39</td><td>39.6861</td><td>20.0239</td></tr>\n",
+       "<tr><td>1237645941834908000</td><td>0.087063</td><td>0.024864</td><td>-19.4898</td><td>278.08</td><td>37.2209</td><td>17.7713</td></tr>\n",
+       "<tr><td>1237645942907732000</td><td>0.261936</td><td>0.024943</td><td>-20.8707</td><td>930.236</td><td>39.843</td><td>19.3054</td></tr>\n",
+       "<tr><td>1237645942908716000</td><td>0.388622</td><td>0.023132</td><td>-21.0093</td><td>1469.65</td><td>40.8361</td><td>20.5011</td></tr>\n",
+       "<tr><td>1237645943435035000</td><td>0.200231</td><td>0.024691</td><td>-18.9625</td><td>686.933</td><td>39.1846</td><td>20.4472</td></tr>\n",
+       "<tr><td>1237645943978984000</td><td>0.39692</td><td>0.029637</td><td>-19.8543</td><td>1506.71</td><td>40.8901</td><td>21.7909</td></tr>\n",
+       "<tr><td>1237646585556370000</td><td>0.066177</td><td>0.025145</td><td>-16.7825</td><td>208.332</td><td>36.5938</td><td>19.7767</td></tr>\n",
+       "<tr><td>1237646585559647000</td><td>0.074538</td><td>0.029302</td><td>-15.5224</td><td>236.029</td><td>36.8648</td><td>21.431</td></tr>\n",
+       "<tr><td>1237646585560040000</td><td>0.14257</td><td>0.008368</td><td>-18.3862</td><td>472.282</td><td>38.371</td><td>20.1943</td></tr>\n",
+       "<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>\n",
+       "<tr><td>1237648703507399000</td><td>0.132729</td><td>0.023465</td><td>-20.0719</td><td>436.939</td><td>38.2021</td><td>18.253</td></tr>\n",
+       "<tr><td>1237648703508513000</td><td>0.073414</td><td>0.020388</td><td>-17.7193</td><td>232.288</td><td>36.8301</td><td>19.1512</td></tr>\n",
+       "<tr><td>1237648703510348000</td><td>0.082549</td><td>0.019688</td><td>-19.311</td><td>262.848</td><td>37.0985</td><td>17.8762</td></tr>\n",
+       "<tr><td>1237648703511593000</td><td>0.510063</td><td>0.025915</td><td>-20.4957</td><td>2031.07</td><td>41.5386</td><td>22.0802</td></tr>\n",
+       "<tr><td>1237648703512052000</td><td>0.16265</td><td>0.020627</td><td>-19.8917</td><td>545.583</td><td>38.6843</td><td>18.908</td></tr>\n",
+       "<tr><td>1237648703516050000</td><td>0.332055</td><td>0.027257</td><td>-21.3976</td><td>1222.52</td><td>40.4363</td><td>19.5553</td></tr>\n",
+       "<tr><td>1237648703518934000</td><td>0.079697</td><td>0.013628</td><td>-15.6865</td><td>253.269</td><td>37.0179</td><td>21.3125</td></tr>\n",
+       "<tr><td>1237648703519917000</td><td>0.302943</td><td>0.022891</td><td>-20.4438</td><td>1099.21</td><td>40.2054</td><td>20.2281</td></tr>\n",
+       "<tr><td>1237648703523063000</td><td>0.044613</td><td>0.021828</td><td>-13.4357</td><td>138.298</td><td>35.7041</td><td>22.3228</td></tr>\n",
+       "<tr><td>1237648703523652000</td><td>0.233715</td><td>0.026482</td><td>-21.1908</td><td>817.279</td><td>39.5619</td><td>18.6915</td></tr>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "<Table length=100>\n",
+       "       objId           z       zErr   absMagR  lumDist distMod  synthR\n",
+       "       int64        float32  float32  float32  float32 float32 float32\n",
+       "------------------- -------- -------- -------- ------- ------- -------\n",
+       "1237645941296923000 0.250062 0.024561 -21.5395 882.371 39.7283 18.5495\n",
+       "1237645941298365000  0.24582 0.026461 -19.9996  865.39 39.6861 20.0239\n",
+       "1237645941834908000 0.087063 0.024864 -19.4898  278.08 37.2209 17.7713\n",
+       "1237645942907732000 0.261936 0.024943 -20.8707 930.236  39.843 19.3054\n",
+       "1237645942908716000 0.388622 0.023132 -21.0093 1469.65 40.8361 20.5011\n",
+       "1237645943435035000 0.200231 0.024691 -18.9625 686.933 39.1846 20.4472\n",
+       "1237645943978984000  0.39692 0.029637 -19.8543 1506.71 40.8901 21.7909\n",
+       "1237646585556370000 0.066177 0.025145 -16.7825 208.332 36.5938 19.7767\n",
+       "1237646585559647000 0.074538 0.029302 -15.5224 236.029 36.8648  21.431\n",
+       "1237646585560040000  0.14257 0.008368 -18.3862 472.282  38.371 20.1943\n",
+       "                ...      ...      ...      ...     ...     ...     ...\n",
+       "1237648703507399000 0.132729 0.023465 -20.0719 436.939 38.2021  18.253\n",
+       "1237648703508513000 0.073414 0.020388 -17.7193 232.288 36.8301 19.1512\n",
+       "1237648703510348000 0.082549 0.019688  -19.311 262.848 37.0985 17.8762\n",
+       "1237648703511593000 0.510063 0.025915 -20.4957 2031.07 41.5386 22.0802\n",
+       "1237648703512052000  0.16265 0.020627 -19.8917 545.583 38.6843  18.908\n",
+       "1237648703516050000 0.332055 0.027257 -21.3976 1222.52 40.4363 19.5553\n",
+       "1237648703518934000 0.079697 0.013628 -15.6865 253.269 37.0179 21.3125\n",
+       "1237648703519917000 0.302943 0.022891 -20.4438 1099.21 40.2054 20.2281\n",
+       "1237648703523063000 0.044613 0.021828 -13.4357 138.298 35.7041 22.3228\n",
+       "1237648703523652000 0.233715 0.026482 -21.1908 817.279 39.5619 18.6915"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# look at your table\n",
+    "\n",
+    "Hub_gal"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It's usually a good idea to close your fits file once you've read the data into a table. Do this using name_you_chose.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "hdu1.close()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now we want to add some columns to our Table. But first, we need to understand what columns we already have!\n",
+    "\n",
+    "objId: just a number corresponding to the galaxy for record keeping\n",
+    "\n",
+    "z: redshift\n",
+    "\n",
+    "zErr: the error in the redshift\n",
+    "\n",
+    "lumDist and distMod: these are two different types of distance measurements. We don't *technically* need these but we'll use them a little later on to cheat and make our graph a little bit cleaner.\n",
+    "\n",
+    "synthR: magnitude of the galaxy in the R band -- this just means how bright the galaxy is in the general wavelength range that corresponds to red light"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now: what columns do we want to add? Actually, let's take a brief pause to revisit what we are trying to do here.\n",
+    "\n",
+    "Basically, we are making a Hubble Diagram -- a graph of distance versus redshift. We already have redshift, so we're good there. But we don't have distance. (Distances are actually a really hard thing to find in astronomy!) \n",
+    "\n",
+    "What we do have is magnitude -- how bright the galaxy is. From this we can get relative distance -- galaxies farther away should be dimmer, right? Kinda. Write below what assumptions this logic is built on:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Assumptions:\n",
+    "    \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### When you get here take a break and come see me and we'll go over the assumptions, and talk a little more about redshift and another distance method that relies on what are called \"standard candles\"!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To convert the magnitudes we have --synthR -- to distances, we have to first stop over at flux (relative flux, that is), using the formula:\n",
+    "\n",
+    "Flux = 2.5^(-Magnitude)\n",
+    "\n",
+    "See if you can figure out how to do an operation like this using numpy! \n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.4"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# practice a power operation using numpy\n",
+    "np.power(2.5, -1.)\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once you figure this out, we need to \n",
+    "1) make a column where we apply this operation to every row of 'synthR' -- our magnitudes\n",
+    "2) name this column, and\n",
+    "3) add this column to our table\n",
+    "\n",
+    "We can do this all with one line, using an attribute of Table called \"add_column\"\n",
+    "\n",
+    "table_name.add_column(Column(**your operation using numpy and table_name['synthR'] goes here**, name = 'flux']\n",
+    "\n",
+    "Use the cell below to do this."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# add flux column\n",
+    "\n",
+    "Hub_gal.add_column(Column(np.power(2.5, -1*Hub_gal['synthR']),name='flux'))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now we do the exact same thing, but now we're going from relative flux to relative distance. This uses the formula\"\n",
+    "\n",
+    "Relative distance = 1 / sqrt(Flux)\n",
+    "\n",
+    "Add a column to our table for relative distance, and name it rel_dist."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# work out the numpy code, then add relative distance column\n",
+    "\n",
+    "Hub_gal.add_column(Column(1 / np.power(Hub_gal['flux'], 0.5), name = 'rel_dist'))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Use the cell below to look at your table again. Are the new columns there?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<i>Table length=100</i>\n",
+       "<table id=\"table140246439694008\" class=\"table-striped table-bordered table-condensed\">\n",
+       "<thead><tr><th>objId</th><th>z</th><th>zErr</th><th>absMagR</th><th>lumDist</th><th>distMod</th><th>synthR</th><th>flux</th><th>rel_dist</th></tr></thead>\n",
+       "<thead><tr><th>int64</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th><th>float32</th></tr></thead>\n",
+       "<tr><td>1237645941296923000</td><td>0.250062</td><td>0.024561</td><td>-21.5395</td><td>882.371</td><td>39.7283</td><td>18.5495</td><td>4.153479e-08</td><td>4906.751</td></tr>\n",
+       "<tr><td>1237645941298365000</td><td>0.24582</td><td>0.026461</td><td>-19.9996</td><td>865.39</td><td>39.6861</td><td>20.0239</td><td>1.0756957e-08</td><td>9641.737</td></tr>\n",
+       "<tr><td>1237645941834908000</td><td>0.087063</td><td>0.024864</td><td>-19.4898</td><td>278.08</td><td>37.2209</td><td>17.7713</td><td>8.47401e-08</td><td>3435.2278</td></tr>\n",
+       "<tr><td>1237645942907732000</td><td>0.261936</td><td>0.024943</td><td>-20.8707</td><td>930.236</td><td>39.843</td><td>19.3054</td><td>2.0778234e-08</td><td>6937.3833</td></tr>\n",
+       "<tr><td>1237645942908716000</td><td>0.388622</td><td>0.023132</td><td>-21.0093</td><td>1469.65</td><td>40.8361</td><td>20.5011</td><td>6.9469133e-09</td><td>11997.867</td></tr>\n",
+       "<tr><td>1237645943435035000</td><td>0.200231</td><td>0.024691</td><td>-18.9625</td><td>686.933</td><td>39.1846</td><td>20.4472</td><td>7.29862e-09</td><td>11705.222</td></tr>\n",
+       "<tr><td>1237645943978984000</td><td>0.39692</td><td>0.029637</td><td>-19.8543</td><td>1506.71</td><td>40.8901</td><td>21.7909</td><td>2.1307345e-09</td><td>21663.834</td></tr>\n",
+       "<tr><td>1237646585556370000</td><td>0.066177</td><td>0.025145</td><td>-16.7825</td><td>208.332</td><td>36.5938</td><td>19.7767</td><td>1.3491499e-08</td><td>8609.341</td></tr>\n",
+       "<tr><td>1237646585559647000</td><td>0.074538</td><td>0.029302</td><td>-15.5224</td><td>236.029</td><td>36.8648</td><td>21.431</td><td>2.96311e-09</td><td>18370.717</td></tr>\n",
+       "<tr><td>1237646585560040000</td><td>0.14257</td><td>0.008368</td><td>-18.3862</td><td>472.282</td><td>38.371</td><td>20.1943</td><td>9.201957e-09</td><td>10424.611</td></tr>\n",
+       "<tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>\n",
+       "<tr><td>1237648703507399000</td><td>0.132729</td><td>0.023465</td><td>-20.0719</td><td>436.939</td><td>38.2021</td><td>18.253</td><td>5.4500553e-08</td><td>4283.508</td></tr>\n",
+       "<tr><td>1237648703508513000</td><td>0.073414</td><td>0.020388</td><td>-17.7193</td><td>232.288</td><td>36.8301</td><td>19.1512</td><td>2.3931591e-08</td><td>6464.1914</td></tr>\n",
+       "<tr><td>1237648703510348000</td><td>0.082549</td><td>0.019688</td><td>-19.311</td><td>262.848</td><td>37.0985</td><td>17.8762</td><td>7.697415e-08</td><td>3604.355</td></tr>\n",
+       "<tr><td>1237648703511593000</td><td>0.510063</td><td>0.025915</td><td>-20.4957</td><td>2031.07</td><td>41.5386</td><td>22.0802</td><td>1.6345754e-09</td><td>24734.182</td></tr>\n",
+       "<tr><td>1237648703512052000</td><td>0.16265</td><td>0.020627</td><td>-19.8917</td><td>545.583</td><td>38.6843</td><td>18.908</td><td>2.9905422e-08</td><td>5782.625</td></tr>\n",
+       "<tr><td>1237648703516050000</td><td>0.332055</td><td>0.027257</td><td>-21.3976</td><td>1222.52</td><td>40.4363</td><td>19.5553</td><td>1.6525851e-08</td><td>7778.898</td></tr>\n",
+       "<tr><td>1237648703518934000</td><td>0.079697</td><td>0.013628</td><td>-15.6865</td><td>253.269</td><td>37.0179</td><td>21.3125</td><td>3.302962e-09</td><td>17399.959</td></tr>\n",
+       "<tr><td>1237648703519917000</td><td>0.302943</td><td>0.022891</td><td>-20.4438</td><td>1099.21</td><td>40.2054</td><td>20.2281</td><td>8.921334e-09</td><td>10587.297</td></tr>\n",
+       "<tr><td>1237648703523063000</td><td>0.044613</td><td>0.021828</td><td>-13.4357</td><td>138.298</td><td>35.7041</td><td>22.3228</td><td>1.3087748e-09</td><td>27641.877</td></tr>\n",
+       "<tr><td>1237648703523652000</td><td>0.233715</td><td>0.026482</td><td>-21.1908</td><td>817.279</td><td>39.5619</td><td>18.6915</td><td>3.646737e-08</td><td>5236.5806</td></tr>\n",
+       "</table>"
+      ],
+      "text/plain": [
+       "<Table length=100>\n",
+       "       objId           z       zErr   ...  synthR      flux      rel_dist\n",
+       "       int64        float32  float32  ... float32    float32     float32 \n",
+       "------------------- -------- -------- ... ------- ------------- ---------\n",
+       "1237645941296923000 0.250062 0.024561 ... 18.5495  4.153479e-08  4906.751\n",
+       "1237645941298365000  0.24582 0.026461 ... 20.0239 1.0756957e-08  9641.737\n",
+       "1237645941834908000 0.087063 0.024864 ... 17.7713   8.47401e-08 3435.2278\n",
+       "1237645942907732000 0.261936 0.024943 ... 19.3054 2.0778234e-08 6937.3833\n",
+       "1237645942908716000 0.388622 0.023132 ... 20.5011 6.9469133e-09 11997.867\n",
+       "1237645943435035000 0.200231 0.024691 ... 20.4472   7.29862e-09 11705.222\n",
+       "1237645943978984000  0.39692 0.029637 ... 21.7909 2.1307345e-09 21663.834\n",
+       "1237646585556370000 0.066177 0.025145 ... 19.7767 1.3491499e-08  8609.341\n",
+       "1237646585559647000 0.074538 0.029302 ...  21.431   2.96311e-09 18370.717\n",
+       "1237646585560040000  0.14257 0.008368 ... 20.1943  9.201957e-09 10424.611\n",
+       "                ...      ...      ... ...     ...           ...       ...\n",
+       "1237648703507399000 0.132729 0.023465 ...  18.253 5.4500553e-08  4283.508\n",
+       "1237648703508513000 0.073414 0.020388 ... 19.1512 2.3931591e-08 6464.1914\n",
+       "1237648703510348000 0.082549 0.019688 ... 17.8762  7.697415e-08  3604.355\n",
+       "1237648703511593000 0.510063 0.025915 ... 22.0802 1.6345754e-09 24734.182\n",
+       "1237648703512052000  0.16265 0.020627 ...  18.908 2.9905422e-08  5782.625\n",
+       "1237648703516050000 0.332055 0.027257 ... 19.5553 1.6525851e-08  7778.898\n",
+       "1237648703518934000 0.079697 0.013628 ... 21.3125  3.302962e-09 17399.959\n",
+       "1237648703519917000 0.302943 0.022891 ... 20.2281  8.921334e-09 10587.297\n",
+       "1237648703523063000 0.044613 0.021828 ... 22.3228 1.3087748e-09 27641.877\n",
+       "1237648703523652000 0.233715 0.026482 ... 18.6915  3.646737e-08 5236.5806"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# print table\n",
+    "\n",
+    "Hub_gal"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now we're going to plot our relative distances versus redshift using matplotlib.pyplot (which we've imported as just plt so we don't have to type that whole thing out every time). Put relative distance on the x-axis, and redshift on the y-axis. Label your axes! \n",
+    "\n",
+    "Here's a pyplot reference: https://matplotlib.org/users/pyplot_tutorial.html\n",
+    "\n",
+    "And if you get stuck just let me know!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<matplotlib.collections.PathCollection at 0x7f8dab2b6748>"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# plot redshift versus distance\n",
+    "\n",
+    "plt.scatter(Hub_gal['rel_dist'], Hub_gal['z'])\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "What's the general trend? Remember what redshift means -- what does this tell us about the relationship between distance and recession speed?\n",
+    "\n",
+    "Answer: \n",
+    "\n",
+    "With better data this relationship would be more linear. What do you think is introducing such large errors?\n",
+    "\n",
+    "Answer:\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now we're going to cheat a bit. Since our y-axis is relative distance, our slope has meaningless units. But we also have \"actual\" distances to these galaxies in our table (by the end of the Notebook you'll understand why it would have been redudant to use these distances from the start). What we can do is \"normalize\" our relative distances with our lumDist values. \n",
+    "\n",
+    "There's no reason to prefer one ratio over any of the others, so let's just use the first! Remember, you can call a specific row of our table like this:\n",
+    "\n",
+    "1st row of lumDist column: your_table_name['lumDist'][1]\n",
+    "\n",
+    "1st row of rel_dist column: your_table_name['rel_dist'][1]\n",
+    "\n",
+    "If we multiply every entry in our relative distance column by this \"conversion factor\", then we should end up with real distances with physically meaningful distances.\n",
+    "\n",
+    "Add a column to our table where we do this^. Name it 'dist'. This is a little confusing so come see me if you're having problems!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# add distance column. print your table to make sure it's there\n",
+    "\n",
+    "Hub_gal.add_column(Column(Hub_gal['rel_dist']*(Hub_gal['lumDist'][1]/Hub_gal['rel_dist'][1]), name = 'dist'))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Since we're already cheating, we might as well go all the way. Next, we're going to use a for loop to get rid of all of our galaxies that have calculated distances too far from their 'actual' values. What types of galaxies do we expect to be deleted when we do this?\n",
+    "\n",
+    "Answer:\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Let's say that we'll get rid of galaxies with distances less than half or more than twice their lumDist value. Use a for loop to delete rows that have distances outside these ranges.\n",
+    "\n",
+    "Here's a few things you might need for this. \n",
+    "\n",
+    "You want the range of your for loop to be the entire set. len(name_of_set) will give you the length of a data set -- a good thing to use for for loops so that your code will still work if you change the length of the data you're working with.\n",
+    "\n",
+    "name_of_you_table.remove_row(i) will delete the ith row\n",
+    "\n",
+    "So iterate through our table, removing a row if it has a dist less than 0.5 * lumDist or greater than 2 * lumDist!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# for loop -- you'll probably run into an error here, come see me for a workaround!\n",
+    "\n",
+    "badrow = []\n",
+    "\n",
+    "for i in range(0, len(Hub_gal['lumDist'])):\n",
+    "    if Hub_gal['lumDist'][i] / Hub_gal['dist'][i] > 2 or Hub_gal['lumDist'][i] / Hub_gal['dist'][i] < 0.5:\n",
+    "        badrow.append(i)\n",
+    "        \n",
+    "badrow_rev = []\n",
+    "\n",
+    "for i in reversed(badrow):\n",
+    "    badrow_rev.append(i)\n",
+    "\n",
+    "for i in range(0, len(badrow)):\n",
+    "    Hub_gal.remove_row(badrow_rev[i])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "How many rows did we delete? \n",
+    "\n",
+    "Answer:\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "68"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# find new length of table\n",
+    "\n",
+    "len(Hub_gal)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Two more things: \n",
+    "\n",
+    "First, plot the new data! Does it look better?\n",
+    "\n",
+    "Next, let's find the slope of a line of best fit for this graph! We're going to use the stats package. The code should look like this:\n",
+    "\n",
+    "stats.linregress(x,y)\n",
+    "\n",
+    "Multiply the redshift value by 300,000 to convert it from redshift (unitless) to recession speed. (You can just do 300,000 * your_table['z'] in the plt.plot argument.)\n",
+    "\n",
+    "Where does the 300,000 come from? What units will this make our recession speed?\n",
+    "\n",
+    "Answer:\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<matplotlib.collections.PathCollection at 0x116ae5990>"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x114bce9d0>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# make a new plot\n",
+    "\n",
+    "plt.scatter(Hub_gal['dist'],300000*Hub_gal['z'])\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(67.735503738436051,\n",
+       " 23824.195261347886,\n",
+       " 0.82503530045910944,\n",
+       " 5.1335656705842313e-18,\n",
+       " 5.7106128527912565)"
+      ]
+     },
+     "execution_count": 25,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# find the slope of the line of best fit\n",
+    "\n",
+    "stats.linregress(Hub_gal['dist'], 300000*Hub_gal['z'])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The first output is the slope! What value did you get? The distance units we converted to are Megaparsecs. What units does this make the slope?\n",
+    "\n",
+    "Answer: 68 km/s/Mpc\n",
+    "\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
