@@ -48,4 +48,4 @@
 * Starting to work with sticky keys
 ##### 7/27:
 * Scripting and testing new keybinding file
-* Outlining presentation / conducting research for presentation script
+* Outlining / conducting research for presentation
