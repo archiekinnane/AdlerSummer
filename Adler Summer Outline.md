@@ -65,3 +65,4 @@
   * Python experimentation, creating new test speck files
   * Error turned out to be caused by one blank line between vars and data
 * Beginning OpenSpace with OpenVR support build
+* Continuing research / planning for end of summer presentation
