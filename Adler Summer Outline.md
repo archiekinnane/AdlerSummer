@@ -51,3 +51,17 @@
 ##### 7/27:
 * Scripting and testing new keybinding file
 * Outlining / conducting research for presentation
+
+### Week 5
+##### 8/2:
+* Setting up OpenSpace in 3D
+  * Creating stereo.xml file
+  * Moving machine to TV with top-bottom stereo 3D support
+  * Experimenting with different eye separations
+* Science communication work
+  * Sitting in on SVL talk
+##### 8/3: 
+* Resolving error where galaxies populated at 0 point in galactic coordinates
+  * Python experimentation, creating new test speck files
+  * Error turned out to be caused by one blank line between vars and data
+* Beginning OpenSpace with OpenVR support build
