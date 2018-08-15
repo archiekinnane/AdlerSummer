@@ -2,7 +2,7 @@ This is a request for added functionality to the RenderableBillboardsClouds rend
 dynamically changing datasets through the addition of a time column that would allow datasets to be animated as simulation time progresses. 
 
 Here are a few examples of what the envisioned functionality could produce:
-* Animation of Gamma Ray Bursts appearing on the sky as simulation time runs in OpenSpace
+* Animation of transient events (like Gamma Ray Bursts or supernovae) appearing on the sky as simulation time runs in OpenSpace
 * Representation of the increasing coverage of surveys like SDSS, i.e. galaxies appearing on the sky as they were observed in real-time 
 to visualize the survey "mapping" across the sky
 
