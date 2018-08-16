@@ -84,7 +84,7 @@ def fixColumns(TableName):
         TableName.add_column(Column(Planck15.comoving_distance(TableName['REDSHIFT']),name='DISTANCE'))
         TableName.remove_column('REDSHIFT')
     else:
-        TableName['DISTANCE'] = 100 * 10e6 * u.pc
+        TableName['DISTANCE'] = 100 * 1e6 * u.pc
         #.add_column(Column((TableName['ra']/TableName['ra']) * 100 * 10e6 * u.pc, name = 'distance'))
         print('Could not find distance or redshift column, placed all data at 100 Mpc')
 
