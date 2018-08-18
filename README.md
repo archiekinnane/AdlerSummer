@@ -9,3 +9,5 @@ For an outline of the summer, see **Adler Summer Outline.md**.
 **Package** contains the code, tutorial, and examples for a package called *data2ops* designed to automatically create the necessary files to visualize datasets in Open Space.
 
 **os_files** is just an old version of the package described above and can be ignored.
+
+**WritingOnTheSky** contains another OpenSpace supplement package that can create the files to write whatever you like as a RenderableBillboardsCloud in OpenSpace on a sphere of radius 1 MPc from Earth.
