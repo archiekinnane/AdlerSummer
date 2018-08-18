@@ -9,8 +9,11 @@ After import,
 ```
 from textOps import alphabet
 ```
-the relevant function is called spellTime. It requires two variables to be initialized: the phrase you want to write and what you want your speck and asset files to be called. It has several more optional variables you can initialize, such as the first letter's position in RA and Dec, the leterwidth, and the letter heigth. If you don't provide these values they will be set at the defaults.
-
+the relevant function is called spellTime. It requires two variables to be initialized: the phrase you want to write and what you want your speck and asset files to be called. It has several more optional variables you can initialize, such as the first letter's position in RA and Dec, the leterwidth, and the letter heigth. If you don't provide these values they will be set at the defaults. If you want a reminder of the arguments, run
+```
+alphabet.printArgs
+```
+which will return:
 ```
 alphabet.spellTime(phrase, filename, topleft_word_ra = 40, letterwidth = 6, topleft_word_dec = 45, letterheight = 4)
 ```
