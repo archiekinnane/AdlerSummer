@@ -11,7 +11,7 @@ from textOps import alphabet
 ```
 the relevant function is called spellTime. It requires two variables to be initialized: the phrase you want to write and what you want your speck and asset files to be called. It has several more optional variables you can initialize, such as the first letter's position in RA and Dec, the letter width, and the letter height. If you don't provide these values they will be set at the defaults. If you want a reminder of the arguments, run
 ```
-alphabet.printArgs
+alphabet.printArgs()
 ```
 which will return:
 ```
