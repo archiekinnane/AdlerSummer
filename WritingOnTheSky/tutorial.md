@@ -1,7 +1,7 @@
 # Tutorial
 
 ### What This Does
-This package will take whatever phrase you like and represent it as a series of points in a RenderableBillboardsClous renderable in OpenSpace. Your text will appear on a sphere of radius 1 Mpc.
+This package will take whatever phrase you like and represent it as a series of points in a RenderableBillboardsCloud renderable in OpenSpace. Your text will appear on a sphere of radius 1 Mpc.
 
 ### How It Works
 
